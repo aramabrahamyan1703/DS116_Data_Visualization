@@ -1,0 +1,90 @@
+---
+title: "HW1"
+author: "Aram Abrahamyan"
+date: "2025-02-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+### Part 1: Data Cleaning and Exploration
+```{r}
+library(dplyr)
+library(lubridate)
+```
+
+#### 1. Load the dataset. Check the first 5 rows.
+```{r}
+df = read.csv('crime_data.csv')
+head(df)
+```
+#### 2. Identify columns with missing values and their respective counts. Drop columns where more than 50% of the data is missing (store this version as a new dataset).
+```{r}
+c = colSums(is.na(df))
+c
+```
+```{r}
+df_cl = df[, colSums(is.na(df)) <= 0.5 * nrow(df)]
+df_cl
+```
+
+#### 3. Convert the DATE OCC column to a datetime format. Extract the year, month, and day into separate columns. Create a new column for the hour using the TIME OCC column.
+```{r}
+df_cl <- df_cl %>% mutate(
+DATE.OCC = as.Date(DATE.OCC, format = "%m/%d/%Y"),
+Year = format(DATE.OCC, "%Y"),
+Month = format(DATE.OCC, "%m"),
+Day = format(DATE.OCC, "%d"),
+Hour = as.integer(TIME.OCC / 100)
+)
+head(df_cl, 5)
+```
+#### 4. Filter the dataset for crimes that occurred in 2023. Further filter crimes with the description BURGLARY in the Crm Cd Desc column.
+```{r}
+df_1 = df_cl %>% filter(Year == 2023, Crm.Cd.Desc == "BURGLARY")
+head(df_1, 5)
+```
+#### 5. Group the data by AREA NAME and calculate the total number of crimes and the average victim age. Sort the results by total crimes in descending order.
+```{r}
+df_2 = df_cl %>% group_by(AREA.NAME) %>% summarise(
+  total_crimes = n(),
+  avg_vctm_age = mean(Vict.Age, na.rm=TRUE)
+) %>% arrange(desc(total_crimes))
+head(df_2, 5)
+```
+### Part 3: Further Exploration (R only)
+#### 1. Group the data by Month and count the number of crimes.
+```{r}
+df_3 = df_cl %>% group_by(Month) %>%
+  summarise(total_crimes = n())
+head(df_3, 5)
+```
+#### 2. Count the number of crimes where a weapon was used (Weapon Used Cd is not null).
+```{r}
+df_4 = df %>% filter(!is.na(Weapon.Used.Cd)) %>%
+  summarise(total_crimes = n())
+df_4$total_crimes
+```
+#### 3. Group the data by Premis Desc and count the number of crimes.
+```{r}
+df_5 = df_cl %>% group_by(Premis.Desc) %>%
+  summarise(total_crimes = n())
+head(df_5, 5)
+```
+### Part 4: Advanced Analysis
+#### 1. Create a new column, Severity Score, based on the following rules:
+#### • Assign 5 points if a weapon was used (Weapon Used Cd is not null).
+#### • Assign 3 points for crimes under BURGLARY.
+#### • Assign 1 point for all other crimes.
+#### • Group by AREA NAME and find the total severity score for each area.
+```{r}
+df <- df %>%
+  mutate(Severity.Score = 
+    ifelse(!is.na(Weapon.Used.Cd), 5, 0) +
+    ifelse(Crm.Cd.Desc == "BURGLARY", 3, 0) +
+    ifelse(is.na(Weapon.Used.Cd) & Crm.Cd.Desc != "BURGLARY", 1, 0)
+  )
+df
+```
+
