@@ -1,0 +1,112 @@
+---
+title: "HW2"
+author: "Aram Abrahamyan"
+date: "2025-02-17"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+### Part 4: Recreate the following graphs
+
+#### Use the gpplot2 package for this graph. (Hint: Aggregate the data then merge the two datasets. Use only the necessary columns.)
+
+```{r}
+library(dplyr)
+library(ggplot2)
+lung_cancer = read.csv('lung_cancer_prediction_dataset.csv')
+head(lung_cancer)
+```
+
+```{r}
+ggplot()+
+  geom_boxplot(data=lung_cancer, aes(x=Annual_Lung_Cancer_Deaths))
+```
+
+```{r}
+ggplot()+
+  geom_histogram(data=pollution, aes(x=PM2.5_AQI_Value))
+```
+
+```{r}
+ggplot()+
+  geom_density(data=lung_cancer, aes(x=Mortality_Rate))
+```
+
+
+```{r}
+pollution = read.csv('global_air_pollution_dataset.csv')
+head(pollution)
+```
+
+```{r}
+left = pollution %>% select(Country, PM2.5_AQI_Value) %>% group_by(Country) %>% summarize(Mean = mean(PM2.5_AQI_Value, na.rm=TRUE))
+right = lung_cancer %>% select(Country, Annual_Lung_Cancer_Deaths) %>% group_by(Country) %>% summarize(Annual_Lung_Cancer_Deaths=sum(Annual_Lung_Cancer_Deaths, na.rm = TRUE))
+merged = merge(left, right, by='Country')
+merged
+```
+
+
+```{r}
+ggplot(merged, aes(x=Mean, y=Annual_Lung_Cancer_Deaths, color=Country)) +
+  geom_point(aes(size=Annual_Lung_Cancer_Deaths)) +
+  labs(title= "PM2.5 AQI vs Annual Lung Cancer Deaths",
+         x="PM2.5 AQI Value",
+       y="Annual Lung Cancer Deaths"
+       ) +
+  theme_bw()+
+  theme(plot.title = element_text(face="bold", color = "darkred", size=15),
+        axis.text.x = element_text(color="darkblue", angle=45),
+        panel.grid.major = element_line(size=0.6, linetype = "dashed", color="grey"),
+        panel.grid.minor = element_line(size=0.25, linetype = "solid", color="grey"),
+        )+
+  geom_text(aes(label=ifelse(Country %in% c("China", "Japan", "India"), Country, "")), color="black", fontface="bold")
+  
+```
+```{r}
+df1 = lung_cancer %>% filter(Cancer_Stage != "None", Years_of_Smoking >0)
+ggplot()+
+  geom_jitter(data=df1, aes(x=Years_of_Smoking, y=Cancer_Stage, shape=Gender, color=Gender), alpha=0.7)+
+  facet_grid(~Gender)+
+  theme_minimal()+
+  labs(x = "Years of Smoking",
+       y= "Cancer Stage",
+       title="Lung Cancer Stage vs Smoking Years",
+       subtitle = "Comparison by Gender")+
+  scale_shape_manual(values=c(17, 19))+
+  scale_color_manual(values=c("#d554f1","#5469f1"))+
+  theme(legend.position = "bottom",
+        plot.title = element_text(face="bold", size=17),
+        plot.subtitle = element_text(face="italic"),
+        strip.text.x = element_text(face="bold", size=15),
+        axis.title = element_text(size=15),
+        legend.text = element_text(size=13),
+        legend.title = element_text(size=13),
+        plot.background = element_rect(fill="#f7f7f7")
+  )
+  
+```
+```{r}
+df2 = pollution %>% filter(Country %in% c("Brazil", "Germany", "India", "Italy", "Russian Federation", "United States of America"))
+ggplot()+
+  geom_histogram(data = df2, aes(x=PM2.5_AQI_Value, fill=Country), color="black", bins=50)+
+  facet_wrap(~Country, scales="free_y")+
+  theme_minimal()+
+  labs(x="PM2.5 AQI Value",
+       y="Frequency",
+       title="PM2.5 AQI Distribution Across Countries",
+       subtitle="Comparison of Air Pollution Levels")+
+  scale_fill_viridis_d(option = "plasma")+
+  theme(
+    legend.position = "bottom",
+    plot.title= element_text(face="bold", size=15),
+    plot.subtitle = element_text(face="italic"),
+    strip.text.x = element_text(face="bold"),
+    axis.title = element_text(size=15),
+    legend.text = element_text(size=13),
+    legend.title = element_text(size=13),
+    plot.background = element_rect(fill="#f7f7f7")
+  )
+```
+
