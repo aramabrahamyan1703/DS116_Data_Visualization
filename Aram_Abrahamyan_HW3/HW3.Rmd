@@ -1,0 +1,115 @@
+---
+title: "Aram_Abrahamyan_HW3"
+author: "Aram Abrahamyan"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+df = read.csv("mobiles_dataset.csv")
+head(df)
+```
+```{r}
+df$Launched.Price.Pakistan.PKR = df$Launched.Price.Pakistan.PKR * 0.0036
+df$Launched.Price.India.INR = df$Launched.Price.India.INR * 0.011
+df$Launched.Price.China.CNY = df$Launched.Price.China.CNY * 0.14
+df$Launched.Price.Dubai.AED = df$Launched.Price.Dubai.AED * 0.27
+head(df)
+```
+```{r}
+mean_price <- data.frame(
+  Country = c("Pakistan", "India", "China", "USA", "Dubai"),
+  Mean_Price = c(
+    mean(df$Launched.Price.Pakistan.PKR, na.rm = TRUE),
+    mean(df$Launched.Price.India.INR, na.rm = TRUE),
+    mean(df$Launched.Price.China.CNY, na.rm = TRUE),
+    mean(df$Launched.Price.USA.USD, na.rm = TRUE),
+    mean(df$Launched.Price.Dubai.AED, na.rm = TRUE)
+  )
+)
+```
+
+```{r}
+ggplot(data=mean_price, aes(x=Country, y=Mean_Price))+
+  geom_bar(stat='identity') +
+  labs(y="Mean Price", title="Bar Chart of Mean Price per Region in USD")+
+  theme_bw()
+```
+```{r}
+ggplot(data = df, aes(x = "", fill = Company.Name)) +
+  geom_bar() +
+  coord_polar("y", start = 0) +
+  labs(title = "Market Share by Company", fill="Company Name") +
+  theme_void()+
+  theme(
+    legend.position = "bottom"
+  )+
+  scale_fill_viridis_d(option="magma")
+  
+```
+```{r, fig.height=6, fig.width=11}
+ggplot(data=df, aes(x=Company.Name, y=Launched.Price.USA.USD, fill=Company.Name))+
+  geom_boxplot()+
+  geom_jitter(width = 0.2, size = 1, alpha=0.7)+
+  theme_minimal()+
+  labs(title = "Price Distribution by Company in USA",
+     subtitle = "A boxplot showing how the price varies by company, with individual data points overlaid",
+     x = "Company",
+     y = "Price in USD",
+     fill = "Company Name")+
+  theme(
+    axis.text.x=element_text(angle=45),
+    plot.title = element_text(face="bold"),
+    plot.subtitle = element_text(face="italic"),
+    legend.text = element_text(size=8),
+    legend.title = element_text(size=9),
+    legend.key.size = unit(17, 'pt')
+  )
+```
+```{r, fig.height=6, fig.width=11}
+ggplot(data=df, aes(x=Battery.Capacity.mAh, y=Launched.Price.USA.USD, color=Company.Name, size=Screen.Size.inches))+
+  geom_point()+
+  theme_minimal()+
+  scale_fill_viridis_d()+
+  labs(title="Battery Capacity vs. Price in USA",
+       subtitle = "The relationship between battery capacity, price, and screen size across different smartphone brands",
+       x="Battery Capacity",
+       y="Price",
+       color="Brand")+
+  theme(
+    plot.title = element_text(face="bold"),
+    plot.subtitle = element_text(face="italic"),
+    legend.text = element_text(size=8),
+    legend.title = element_text(size=9),
+    legend.key.size = unit(17, 'pt')
+  )+
+  scale_size(guide="none", range=c(0.5, 4))
+```
+```{r, fig.height=6, fig.width=11}
+filtered = df %>% filter(Company.Name %in% c("Apple", "Honor", "Oppo", "Samsung", "Vivo"))
+ggplot(data=filtered, aes(x=Battery.Capacity.mAh, y=Launched.Price.USA.USD, shape=Company.Name, color=Screen.Size.inches, size=Screen.Size.inches, alpha=0.8))+
+  geom_point()+
+  labs(
+    x="Battery Capacity (mAh)",
+    y="Price (USD)",
+    title="Battery Capacity vs. Price for Top 5 Brands",
+    subtitle="Different Shapes for Each Brand, Color by Screen Size, (USA)",
+    shape = 'Brand'
+  )+
+  theme_minimal()+
+  theme(
+    plot.title=element_text(face="bold"),
+    plot.subtitle=element_text(face="italic") 
+  )+
+  scale_size(guide="none")+
+  scale_alpha(guide="none")+
+  scale_color_continuous(guide="none")+
+  scale_shape_manual(values=c(16, 17, 18, 15, 19))
+```
+
