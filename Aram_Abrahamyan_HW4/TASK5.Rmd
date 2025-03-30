@@ -1,0 +1,70 @@
+---
+title: "HW4_TASK5"
+author: "Aram Abrahamyan"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+```
+
+```{r}
+df = read.csv('bundesliga2.csv')
+head(df)
+```
+```{r}
+library(ggplot2)
+library(dplyr)
+library(scales)
+
+seasons <- unique(df$SEASON)
+
+pdf("bundesliga_points_plots_r.pdf", width = 20, height = 8)
+
+for (season in seasons) {
+  season_data <- df %>%
+    filter(SEASON == season) %>%
+    arrange(POINTS)
+  
+  winner_row <- season_data %>% filter(POSITION == 1)
+  winner <- winner_row$TEAM[1]
+  
+  teams <- unique(season_data$TEAM)
+  team_colors <- setNames(hue_pal()(length(teams)), teams)
+  
+  p <- ggplot(season_data, aes(x = POINTS, y = reorder(TEAM, POINTS), fill = TEAM)) +
+    geom_bar(show.legend = FALSE, color = ifelse(season_data$TEAM==winner, "black", NA), linewidth = 1.2, stat = 'identity') +
+    scale_fill_manual(values = team_colors) +
+    labs(title = paste("Bundesliga", season, "- Total Points by Team"),
+         x = "Total Points", y = "Team") +
+    theme_bw() +
+    theme(plot.title = element_text(face = "bold", size = 16),
+          axis.title = element_text(size = 14),
+          axis.text = element_text(size = 12))+
+    geom_text(data = subset(season_data, TEAM == winner),
+                aes(label = "Winner", x = POINTS + 2), 
+                fontface = "bold", size = 5, hjust = 0, color = "black")
+  
+  print(p)
+}
+
+dev.off()
+
+
+```
+```{r}
+  season_data <- df %>%
+    filter(SEASON == season) %>%
+    arrange(POINTS)
+  
+  winner_row <- season_data %>% filter(POSITION == 1)
+  winner <- winner_row$TEAM[1]
+  winner
+```
+
