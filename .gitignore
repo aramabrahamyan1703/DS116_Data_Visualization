@@ -6,5 +6,11 @@
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
-/.idea
-
+.idea
+.DS_Store
+Aram_Abahamyan_HW1/.DS_Store
+Aram_Abrahamyan_HW2/.DS_Store
+Aram_Abrahamyan_HW3/.DS_Store
+Aram_Abrahamyan_HW3/.RData
+Aram_Abrahamyan_HW3/.Rhistory
+Aram_Abrahamyan_HW4/.DS_Store
